@@ -1,57 +1,3 @@
-class GildedRose
-  def initialize(items)
-    @items = items
-  end
-
-  def update_quality()
-    @items.each do |item|
-      if item.name != 'Aged Brie' and item.name != 'Backstage passes to a TAFKAL80ETC concert'
-        if item.quality > 0
-          if item.name != 'Sulfuras, Hand of Ragnaros'
-            item.quality = item.quality - 1
-          end
-        end
-      else
-        if item.quality < 50
-          item.quality = item.quality + 1
-          if item.name == 'Backstage passes to a TAFKAL80ETC concert'
-            if item.sell_in < 11
-              if item.quality < 50
-                item.quality = item.quality + 1
-              end
-            end
-            if item.sell_in < 6
-              if item.quality < 50
-                item.quality = item.quality + 1
-              end
-            end
-          end
-        end
-      end
-      if item.name != 'Sulfuras, Hand of Ragnaros'
-        item.sell_in = item.sell_in - 1
-      end
-      if item.sell_in < 0
-        if item.name != 'Aged Brie'
-          if item.name != 'Backstage passes to a TAFKAL80ETC concert'
-            if item.quality > 0
-              if item.name != 'Sulfuras, Hand of Ragnaros'
-                item.quality = item.quality - 1
-              end
-            end
-          else
-            item.quality = item.quality - item.quality
-          end
-        else
-          if item.quality < 50
-            item.quality = item.quality + 1
-          end
-        end
-      end
-    end
-  end
-end
-
 class Item
   attr_accessor :name, :sell_in, :quality
 
@@ -63,5 +9,79 @@ class Item
 
   def to_s()
     "#{@name}, #{@sell_in}, #{@quality}"
+  end
+end
+
+class Normal < Item
+  def update_quality
+    return unless quality.positive?
+
+    @quality -= 1
+    @sell_in -= 1
+
+    return if sell_in.positive?
+
+    @quality -= 1
+  end
+end
+
+class Brie < Item
+  def update_quality
+    return unless quality < 50
+
+    @quality += 1
+    @sell_in -= 1
+
+    return if sell_in.positive?
+
+    @quality += 1
+  end
+end
+
+class Backstage < Item
+  def update_quality
+    return unless quality < 50
+
+    @quality += 1
+    @sell_in -= 1
+
+    return unless sell_in < 11
+
+    @quality += 1
+
+    return unless sell_in < 6
+
+    @quality += 1
+
+    return if sell_in.positive?
+
+    @quality = 0
+  end
+end
+
+class GildedRose
+  LEGENDARY_ITEMS = ['Sulfuras, Hand of Ragnaros'].freeze
+
+  SPECIAL_ITEMS   = {
+    'Aged Brie' => ::Brie,
+    'Backstage passes to a TAFKAL80ETC concert' => ::Backstage
+  }.freeze
+
+  def self.item(name, sell_in, quality)
+    klass = SPECIAL_ITEMS.fetch(name, Normal)
+
+    klass.new(name, sell_in, quality)
+  end
+
+  def initialize(items)
+    @items = items
+  end
+
+  def update_quality
+    @items.each do |item|
+      next if LEGENDARY_ITEMS.include?(item.name)
+
+      item.update_quality
+    end
   end
 end
