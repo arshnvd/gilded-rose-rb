@@ -26,6 +26,28 @@ class TestGildedRose < Test::Unit::TestCase
     assert_equal item.quality, 43
   end
 
+  def test_conjured_item_before_sell_date
+    item        = Item.new('Conjured', 10, 5)
+    gilded_rose = GildedRose.new([item])
+    gilded_rose.update_quality
+    assert_equal item.name, 'Conjured'
+    assert_equal item.quality, 3
+  end
+
+  def test_conjured_item_on_sell_date
+    item        = Item.new('Conjured', 0, 8)
+    gilded_rose = GildedRose.new([item])
+    gilded_rose.update_quality
+    assert_equal item.quality, 4
+  end
+
+  def test_conjured_item_after_sell_date
+    item        = Item.new('Conjured', -7, 45)
+    gilded_rose = GildedRose.new([item])
+    gilded_rose.update_quality
+    assert_equal item.quality, 41
+  end
+
   def test_aged_brie_item_before_sell_date
     item        = Item.new('Aged Brie', 10, 22)
     gilded_rose = GildedRose.new([item])
