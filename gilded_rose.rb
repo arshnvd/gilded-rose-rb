@@ -3,51 +3,53 @@ class GildedRose
     @items = items
   end
 
+  LEGENDARY_ITEMS = ['Sulfuras, Hand of Ragnaros'].freeze
+
+  NORMAL_ITEM = {
+    before: [{ symbol: '-', step: 1 }],
+    after: [{ symbol: '-', step: 2 }]
+  }.freeze
+
+  SPECIAL_ITEMS = {
+    'Aged Brie' => {
+      before: [{ symbol: '+', step: 1 }],
+      after: [{ symbol: '+', step: 2 }]
+    },
+    'Backstage passes to a TAFKAL80ETC concert' => {
+      before: [
+        { symbol: '+', step: 1 },
+        { days: 10, symbol: '+', step: 1 },
+        { days: 5, symbol: '+', step: 1 }
+      ],
+      after: [{ symbol: '-' }]
+    }
+  }.freeze
+
   def update_quality()
     @items.each do |item|
-      if item.name != 'Aged Brie' and item.name != 'Backstage passes to a TAFKAL80ETC concert'
-        if item.quality > 0
-          if item.name != 'Sulfuras, Hand of Ragnaros'
-            item.quality = item.quality - 1
-          end
-        end
-      else
-        if item.quality < 50
-          item.quality = item.quality + 1
-          if item.name == 'Backstage passes to a TAFKAL80ETC concert'
-            if item.sell_in < 11
-              if item.quality < 50
-                item.quality = item.quality + 1
-              end
-            end
-            if item.sell_in < 6
-              if item.quality < 50
-                item.quality = item.quality + 1
-              end
-            end
-          end
-        end
-      end
-      if item.name != 'Sulfuras, Hand of Ragnaros'
-        item.sell_in = item.sell_in - 1
-      end
-      if item.sell_in < 0
-        if item.name != 'Aged Brie'
-          if item.name != 'Backstage passes to a TAFKAL80ETC concert'
-            if item.quality > 0
-              if item.name != 'Sulfuras, Hand of Ragnaros'
-                item.quality = item.quality - 1
-              end
-            end
-          else
-            item.quality = item.quality - item.quality
-          end
-        else
-          if item.quality < 50
-            item.quality = item.quality + 1
-          end
-        end
-      end
+      next if LEGENDARY_ITEMS.include?(item.name)
+
+      update_quality_for!(item: item, at: :before) if item.sell_in.positive?
+      update_quality_for!(item: item, at: :after) unless item.sell_in.positive?
+
+      item.sell_in -= 1
+    end
+  end
+
+  def update_quality_for!(item:, at:)
+    conditions = SPECIAL_ITEMS.fetch(item.name, NORMAL_ITEM)
+    rules      = conditions[at]
+
+    rules.each do |rule|
+      step = rule[:step] || item.quality
+      days = rule[:days]
+
+      days ||
+        (item.quality = item.quality.__send__(rule[:symbol], step))
+
+      days &&
+        (item.sell_in <= days) &&
+        (item.quality = item.quality.__send__(rule[:symbol], step))
     end
   end
 end
