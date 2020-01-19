@@ -15,6 +15,10 @@ class GildedRose
       before: [{ symbol: '+', step: 1 }],
       after: [{ symbol: '+', step: 2 }]
     },
+    'Conjured' => {
+      before: [{ symbol: '-', step: 2 }],
+      after: [{ symbol: '-', step: 4 }]
+    },
     'Backstage passes to a TAFKAL80ETC concert' => {
       before: [
         { symbol: '+', step: 1 },
