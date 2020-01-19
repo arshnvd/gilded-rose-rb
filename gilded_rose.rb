@@ -25,6 +25,19 @@ class Normal < Item
   end
 end
 
+class Conjured < Item
+  def update_quality
+    return unless quality.positive?
+
+    @quality -= 2
+    @sell_in -= 1
+
+    return if sell_in.positive?
+
+    @quality -= 2
+  end
+end
+
 class Brie < Item
   def update_quality
     return unless quality < 50
@@ -64,6 +77,7 @@ class GildedRose
 
   SPECIAL_ITEMS   = {
     'Aged Brie' => ::Brie,
+    'Conjured' => ::Conjured,
     'Backstage passes to a TAFKAL80ETC concert' => ::Backstage
   }.freeze
 
